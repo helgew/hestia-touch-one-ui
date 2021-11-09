@@ -1,6 +1,6 @@
 <template>
   <div id="home-screen">
-    <div v-if="screensaver" class="dim" @click="screensaver = false" />
+    <div v-if="screensaver" class="dim" @click="screensaver = false"/>
     <power-settings-modal
       :mode="lastTappedMode"
       :on-option-select="powerModalCallback"
@@ -20,48 +20,7 @@
         <icon-heat size="76%" v-if="!modes.heat2.running"/>
         <icon-heat2 size="76%" v-if="modes.heat2.running"/>
       </div>
-      <div v-if="showCooling"
-           class="mode-btn cool"
-           :class="{
-          animated: modes.cool.running,
-          'color-cool': (selectedMode || lastTappedMode) === 'cool',
-          'color-off': (selectedMode || lastTappedMode) !== 'cool'
-        }"
-           @click="openPowerModal('cool')">
-        <icon-cool size="80%"/>
-      </div>
-      <div v-if="showFan"
-           class="mode-btn fan"
-           :class="{
-          animated: modes.fan.running,
-          'color-fan': (selectedMode || lastTappedMode) === 'fan',
-          'color-off': (selectedMode || lastTappedMode) !== 'fan'
-        }"
-           @click="openPowerModal('fan')">
-        <icon-fan size="82%"/>
-      </div>
-      <div v-if="showHumidity"
-           class="mode-btn humidity"
-           :class="{
-          animated: modes.humidity.running,
-          'color-humidity': (selectedMode || lastTappedMode) === 'humidity',
-          'color-off': (selectedMode || lastTappedMode) !== 'humidity'
-        }"
-           @click="openPowerModal('humidity')">
-        <icon-humidity size="82%"/>
-      </div>
-      <div v-if="showHotWater"
-           class="mode-btn hotwater"
-           :class="{
-          animated: modes.hotwater.running,
-          'color-hotwater': (selectedMode || lastTappedMode) === 'hotwater',
-          'color-off': (selectedMode || lastTappedMode) !== 'hotwater'
-        }"
-           @click="openPowerModal('hotwater')">
-        <icon-hotwater size="70%"/>
-      </div>
-      <div class="mode-btn">&nbsp;</div>
-      <div class="mode-btn datetimedisplay unselectable" style="color: #999999">
+      <div class="mode-btn datetimedisplay unselectable">
         <DateTimeDisplay/>
       </div>
       <div class="mode-btn info color-off" @click="toggleInfoScreen">
@@ -105,13 +64,9 @@
 <script>
 import { mapState } from 'vuex'
 import powerSettingsModal from './power-settings-modal.vue'
-import iconCool from './icon-cool.vue'
 import iconHeat from './icon-heat.vue'
-import iconHeat2 from './icon-heat2.vue'
 import iconHome from './icon-home.vue'
-import iconFan from './icon-fan.vue'
 import iconHumidity from './icon-humidity.vue'
-import iconHotwater from './icon-hotwater.vue'
 import iconInfo from './icon-info.vue'
 import DateTimeDisplay from "./datetime.vue";
 
@@ -121,33 +76,24 @@ export default {
       // Called by the power settings modal when you tap on a mode
       powerModalCallback: () => {
       }, // Give the power settings modal context of what options to show
-      lastTappedMode: '', showPowerModal: false, sleeping: true, tempClass: 'sleep-temp',
-      secondsAwake: 0, screensaver: false, screenAwake: 0
+      lastTappedMode    : '',
+      showPowerModal    : false,
+      sleeping          : true,
+      tempClass         : 'sleep-temp',
+      secondsAwake      : 0,
+      screensaver       : false,
+      screenAwake       : 0
     }
   }, components: {
-    DateTimeDisplay,
-    iconCool,
-    iconFan,
-    iconHeat,
-    iconHeat2,
-    iconHome,
-    iconHumidity,
-    iconHotwater,
-    iconInfo,
-    powerSettingsModal
+    DateTimeDisplay, iconHeat, iconHome, iconHumidity, iconInfo, powerSettingsModal
   }, computed  : {
     // Some variables in $store.state we want to read
     // https://vuex.vuejs.org/guide/state.html#the-mapstate-helper
     ...mapState(
       ['comfortMode', 'currentTemperature', 'currentHumidity', 'icons', 'hysteresis', 'modes',
-        'selectedMode', 'showControls', 'showCooling', 'showFan', 'showHeating', 'showHotWater',
-        'showHumidity']), powerSettingText() {
+        'selectedMode', 'showControls', 'showHeating']), powerSettingText() {
       const modes = {
-        cool    : () => 'Cooling',
-        heat    : () => this.modes.heat2.running ? '2nd-stage heating' : 'Heating',
-        hotwater: () => 'Hot water',
-        humidity: () => 'Humidity control',
-        fan     : () => 'Fan'
+        heat: () => this.modes.heat2.running ? '2nd-stage heating' : 'Heating',
       }
       if (this.selectedMode && modes[this.selectedMode]) {
         const modeState = this.modes[this.selectedMode]
@@ -156,12 +102,8 @@ export default {
           return `${modeText} boost mode, ${modeState.boostTimeRemaining} min. remaining`
         }
 
-        if ((modeText == 'Fan') && ((modeState.active) || (modeState.running))) {
-          return `${modeText} on`
-        } else {
-          if (modeState.active) {
-            return `${modeText} auto`
-          }
+        if (modeState.active) {
+          return `${modeText} auto`
         }
 
         return `${modeText} off`
@@ -412,16 +354,16 @@ export default {
 }
 
 .dim {
-  height:100%;
-  width:100%;
-  position:fixed;
-  left:0;
-  top:0;
-  z-index:10 !important;
-  background-color:black;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10 !important;
+  background-color: black;
   filter: alpha(opacity=75); /* internet explorer */
-  -khtml-opacity: 0.75;      /* khtml, old safari */
-  -moz-opacity: 0.75;      /* mozilla, netscape */
-  opacity: 0.75;      /* fx, safari, opera */
+  -khtml-opacity: 0.75; /* khtml, old safari */
+  -moz-opacity: 0.75; /* mozilla, netscape */
+  opacity: 0.75; /* fx, safari, opera */
 }
 </style>

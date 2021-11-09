@@ -35,34 +35,6 @@ export default new Vuex.Store({
       // 2nd-stage or emergency heating
       heat2: {
         running: false
-      },
-      cool: {
-        active: false,
-        boostEnabled: false,
-        boostTimeRemaining: 0,
-        running: false,
-        setValue: 0,
-        stepSize: 1
-      },
-      fan: {
-        active: false,
-        boostEnabled: false, // always false
-        boostTimeRemaining: 0,
-        running: false
-      },
-      hotwater: {
-        active: false,
-        boostEnabled: false,
-        boostTimeRemaining: 0,
-        running: false
-      },
-      humidity: {
-        active: false,
-        boostEnabled: false,
-        boostTimeRemaining: 0,
-        running: false,
-        setValue: 50,
-        stepSize: 1
       }
     },
     info: {
@@ -81,11 +53,7 @@ export default new Vuex.Store({
     selectedMode: 'heat',
     showInfoScreen: false,
     showControls: true,
-    showCooling: false,
-    showHeating: true,
-    showFan: false,
-    showHumidity: false,
-    showHotWater: false
+    showHeating: true
   },
   getters: {
     targetTemperature
@@ -106,11 +74,7 @@ function mqttClientPlugin(store) {
     //
     // Mode-setting topics
     //
-    'hestia/local/cmnd/coolingmode': updateMode(store.state, 'cool'),
-    'hestia/local/cmnd/fanmode': updateMode(store.state, 'fan'),
     'hestia/local/cmnd/heatingmode': updateMode(store.state, 'heat'),
-    'hestia/local/cmnd/hotwatermode': updateMode(store.state, 'hotwater'),
-    'hestia/local/cmnd/humiditymode': updateMode(store.state, 'humidity'),
     //
     // Power-setting topics
     //
@@ -120,38 +84,17 @@ function mqttClientPlugin(store) {
     'hestia/local/hysteresis': message => {
       store.state.hysteresis = Number(message)
     },
-    'hestia/local/cmnd/coolingstate/POWER': message => {
-      store.state.modes.cool.running = message === 'ON'
-    },
     'hestia/local/cmnd/heatingstate/POWER': message => {
       store.state.modes.heat.running = message === 'ON'
     },
     'hestia/local/cmnd/heating2state/POWER': message => {
       store.state.modes.heat2.running = message === 'ON'
     },
-    'hestia/local/cmnd/fanstate/POWER': message => {
-      store.state.modes.fan.running = message === 'ON'
-    },
-    'hestia/local/cmnd/hotwaterstate/POWER': message => {
-      store.state.modes.hotwater.running = message === 'ON'
-    },
-    'hestia/local/cmnd/humiditystate/POWER': message => {
-      store.state.modes.humidity.running = message === 'ON'
-    },
     //
     // Boost timer topics
     //
-    'hestia/coolingboostremtime': message => {
-      store.state.modes.cool.boostTimeRemaining = Number(message)
-    },
     'hestia/heatingboostremtime': message => {
       store.state.modes.heat.boostTimeRemaining = Number(message)
-    },
-    'hestia/hotwaterboostremtime': message => {
-      store.state.modes.hotwater.boostTimeRemaining = Number(message)
-    },
-    'hestia/humidityboostremtime': message => {
-      store.state.modes.humidity.boostTimeRemaining = Number(message)
     },
     //
     // Status topics
@@ -163,17 +106,11 @@ function mqttClientPlugin(store) {
         store.state.currentTemperature = parseInt(message)
       }
     },
-    'hestia/local/maxtempsetpoint': message => {
-      store.state.modes.cool.setValue = parseFloat(message)
-    },
     'hestia/local/mintempsetpoint': message => {
       store.state.modes.heat.setValue = parseFloat(message)
     },
     'hestia/local/humidity': message => {
       store.state.currentHumidity = parseInt(message)
-    },
-    'hestia/local/humisetpoint': message => {
-      store.state.modes.humidity.setValue = parseInt(message)
     },
     'hestia/local/pressure': message => {
       store.state.currentPressure = message
@@ -209,55 +146,16 @@ function mqttClientPlugin(store) {
       store.state.info.tempunit = message
       if (message === 'C') {
         store.state.modes.heat.stepSize = 0.5
-        store.state.modes.cool.stepSize = 0.5
       } else {
         store.state.modes.heat.stepSize = 1
-        store.state.modes.cool.stepSize = 1
       }
     },
     'hestia/local/systemtype': message => {
       store.state.info.systemtype = message
-      if (store.state.info.systemtype === 'US') {
-        // Typical US/HVAC modes
-        store.state.showHumidity = false
-        store.state.showHotWater = false
-
-        store.state.showFan = true
-        store.state.showHeating = true
-        store.state.showCooling = true
-      } else if (store.state.info.systemtype === 'EU') {
-        // Typical EU modes
-        store.state.showFan = false
-        store.state.showCooling = false
-
-        store.state.showHeating = true
-        store.state.showHumidity = true
-        store.state.showHotWater = true
-      } else {
-        // Custom mode
-        store.state.showFan = false
-        store.state.showCooling = false
-
-        store.state.showHeating = true
-        store.state.showHumidity = false
-        store.state.showHotWater = false
-      }
+      store.state.showHeating = true
     },
     'hestia/local/season': message => {
       store.state.info.season = message
-      if (store.state.info.season === 'SUMMER') {
-        if (store.state.info.systemtype === 'US') {
-          store.state.showCooling = true
-        }
-        store.state.showHeating = true
-      } else {
-        if (store.state.info.systemtype === 'US') {
-          store.state.showCooling = true
-        } else {
-          store.state.showCooling = false
-        }
-        store.state.showHeating = true
-      }
     }
   }
 
@@ -273,19 +171,6 @@ function mqttClientPlugin(store) {
         'hestia/local/cmnd/heatingstate/POWER',
         'hestia/local/cmnd/heating2state/POWER',
         'hestia/local/mintempsetpoint',
-        // Cooling
-        'hestia/local/cmnd/coolingmode',
-        'hestia/local/cmnd/coolingstate/POWER',
-        'hestia/local/maxtempsetpoint',
-        // Fan
-        'hestia/local/cmnd/fanmode',
-        'hestia/local/cmnd/fanstate/POWER',
-        // Hot water
-        'hestia/local/cmnd/hotwatermode',
-        'hestia/local/cmnd/hotwaterstate/POWER',
-        // Humidity
-        'hestia/local/cmnd/humiditymode',
-        'hestia/local/cmnd/humiditystate/POWER',
         // Sensor metrics
         'hestia/local/temperature',
         'hestia/local/humidity',
@@ -306,9 +191,6 @@ function mqttClientPlugin(store) {
         'hestia/local/season',
         // Boost mode timers
         'hestia/heatingboostremtime',
-        'hestia/coolingboostremtime',
-        'hestia/humidityboostremtime',
-        'hestia/hotwaterboostremtime'
       ],
       (error) => {
         if (error) {
@@ -332,10 +214,10 @@ function mqttClientPlugin(store) {
     console.debug(`[receiving] ${topic}: ${parsedMessage}`)
 
     if (!messageCallbacks[topic]) {
-      throw new Error(`Unhandled topic received ${topic}`)
+      console.debug(`Unhandled topic received ${topic}`)
+    } else {
+      messageCallbacks[topic](parsedMessage, packet)
     }
-
-    messageCallbacks[topic](parsedMessage, packet)
   })
 
 }
@@ -358,11 +240,7 @@ function targetTemperature(state) {
   }
   const modeState = state.modes[state.selectedMode]
   if (modeState) {
-    if (state.selectedMode == 'humidity') {
-      return `${modeState.setValue}<span class="symbol">%</span>`
-    } else { //temperature
-      return `${modeState.setValue}<span class="symbol">&deg;</span>`
-    }
+    return `${modeState.setValue}<span class="symbol">&deg;</span>`
   }
   return 'Off'
 }
@@ -378,9 +256,7 @@ function targetTemperature(state) {
 // that the new humidity setpoint is 54 and none of the in-between settings.
 const publishTargetValue = debounce((state, mode, value) => {
   const topics = {
-    cool: 'hestia/local/cmnd/setmaxtempsetpoint',
     heat: 'hestia/local/cmnd/setmintempsetpoint',
-    humidity: 'hestia/local/sethumisetpoint'
   }
 
   console.debug(`[sending] ${topics[mode]}: ${value}`)
@@ -417,10 +293,6 @@ function selectMode(state, mode) {
 function selectPowerSetting(state, { mode, powerOption }) {
   const topics = {
     heat: 'hestia/local/stat/heatingmode',
-    cool: 'hestia/local/stat/coolingmode',
-    fan: 'hestia/local/stat/fanmode',
-    hotwater: 'hestia/local/stat/hotwatermode',
-    humidity: 'hestia/local/stat/humiditymode'
   }
 
   // We don't set a local state for this. Merely report to openhab

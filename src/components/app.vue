@@ -56,24 +56,8 @@ html {
   display: none;
 }
 
-.color-cool {
-  color: #6ad0ff;
-}
-
 .color-heat {
   color: #fd684e;
-}
-
-.color-humidity {
-  color: rgb(147,60,255);
-}
-
-.color-fan {
-  color: #75ff65;
-}
-
-.color-hotwater {
-  color: aqua;
 }
 
 .color-off {
