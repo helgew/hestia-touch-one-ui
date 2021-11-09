@@ -24,7 +24,6 @@ export default {
   },
   computed: {
     options() {
-      if (this.mode === 'heat' || this.mode === 'cool') {
         return [
           {
             key: 'ON',
@@ -39,33 +38,6 @@ export default {
             label: 'Boost'
           }
         ]
-      } else if (this.mode === 'humidity' || this.mode === 'hotwater')  {
-        return [
-          {
-            key: 'ON',
-            label: 'On'
-          },
-          {
-            key: 'OFF',
-            label: 'Off',
-          },
-          {
-            key: 'Boost',
-            label: 'Boost'
-          }
-        ]
-      } else { //Fan
-        return [
-          {
-            key: 'ON',
-            label: 'On'
-          },
-          {
-            key: 'OFF',
-            label: 'Off',
-          }
-        ]
-      }
     },
     selectOption() {
       return this.onOptionSelect

@@ -31,10 +31,6 @@ export default new Vuex.Store({
         setValue: 0,
         // How much to increment the target temperature with each tap
         stepSize: 0.5,
-      },
-      // 2nd-stage or emergency heating
-      heat2: {
-        running: false
       }
     },
     info: {
@@ -86,9 +82,6 @@ function mqttClientPlugin(store) {
     },
     'hestia/local/cmnd/heatingstate/POWER': message => {
       store.state.modes.heat.running = message === 'ON'
-    },
-    'hestia/local/cmnd/heating2state/POWER': message => {
-      store.state.modes.heat2.running = message === 'ON'
     },
     //
     // Boost timer topics

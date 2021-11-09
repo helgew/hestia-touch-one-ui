@@ -35,13 +35,13 @@ export default {
 
 <style>
 .time {
-  font-size: 3em;
+  font-size: 8vh;
   display: flex;
   justify-content: center;
 }
 
 .date {
-  font-size: 1.2em;
+  font-size: 4vh;
   display: flex;
   justify-content: center;
 }

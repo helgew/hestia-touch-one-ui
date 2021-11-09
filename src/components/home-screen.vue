@@ -10,17 +10,16 @@
       <div v-if="showHeating"
            class="mode-btn heat"
            :class="{
-          animated: modes.heat.running || modes.heat2.running,
+          animated: modes.heat.running,
           'color-heat': (selectedMode || lastTappedMode) === 'heat'
                             && (modes.heat.active || modes.heat.boostEnabled),
           'color-off': (selectedMode || lastTappedMode) !== 'heat'
         }"
            @click="openPowerModal('heat')">
         <!-- Switch out icon for 2nd-stage heating -->
-        <icon-heat size="76%" v-if="!modes.heat2.running"/>
-        <icon-heat2 size="76%" v-if="modes.heat2.running"/>
+        <icon-heat size="76%"/>
       </div>
-      <div class="mode-btn datetimedisplay unselectable">
+      <div class="datetimedisplay unselectable">
         <DateTimeDisplay/>
       </div>
       <div class="mode-btn info color-off" @click="toggleInfoScreen">
@@ -93,7 +92,7 @@ export default {
       ['comfortMode', 'currentTemperature', 'currentHumidity', 'icons', 'hysteresis', 'modes',
         'selectedMode', 'showControls', 'showHeating']), powerSettingText() {
       const modes = {
-        heat: () => this.modes.heat2.running ? '2nd-stage heating' : 'Heating',
+        heat: () => 'Heating',
       }
       if (this.selectedMode && modes[this.selectedMode]) {
         const modeState = this.modes[this.selectedMode]
@@ -192,15 +191,15 @@ export default {
 }
 
 .sleep-temp {
-  padding-left: 210px;
+  padding-left: 30vh;
   font-size: 40vh;
   left: 2%;
   line-height: 80%;
   top: 29%;
   width: 40vw;
-  height: 310px;
+  height: 53vh;
   z-index: 1;
-  padding-top: 100px;
+  padding-top: 10vh;
   background: black;
 }
 
@@ -295,9 +294,16 @@ export default {
   margin-top: 4.4vh;
 }
 
-.mode-btn.datetimedisplay {
-  margin-top: 5vh;
-  width: 40vh;
+.datetimedisplay {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100px;
+  height: 50px;
+  margin-top: -20px;
+  margin-left: -50px;
 }
 
 .mode-btn.humidity {
