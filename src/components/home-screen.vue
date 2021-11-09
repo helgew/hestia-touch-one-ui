@@ -4,70 +4,77 @@
       :mode="lastTappedMode"
       :on-option-select="powerModalCallback"
       v-if="showPowerModal"
-      />
+    />
     <div class="top-container">
       <div v-if="showHeating"
-        class="mode-btn heat"
-        :class="{
+           class="mode-btn heat"
+           :class="{
           animated: modes.heat.running || modes.heat2.running,
-          'color-heat': (selectedMode || lastTappedMode) === 'heat',
+          'color-heat': (selectedMode || lastTappedMode) === 'heat'
+                            && (modes.heat.active || modes.heat.boostEnabled),
           'color-off': (selectedMode || lastTappedMode) !== 'heat'
         }"
-        @click="openPowerModal('heat')">
+           @click="openPowerModal('heat')">
         <!-- Switch out icon for 2nd-stage heating -->
-        <icon-heat size="76%" v-if="!modes.heat2.running" />
-        <icon-heat2 size="76%" v-if="modes.heat2.running" />
+        <icon-heat size="76%" v-if="!modes.heat2.running"/>
+        <icon-heat2 size="76%" v-if="modes.heat2.running"/>
       </div>
       <div v-if="showCooling"
-        class="mode-btn cool"
-        :class="{
+           class="mode-btn cool"
+           :class="{
           animated: modes.cool.running,
           'color-cool': (selectedMode || lastTappedMode) === 'cool',
           'color-off': (selectedMode || lastTappedMode) !== 'cool'
         }"
-        @click="openPowerModal('cool')">
-        <icon-cool size="80%" />
+           @click="openPowerModal('cool')">
+        <icon-cool size="80%"/>
       </div>
       <div v-if="showFan"
-        class="mode-btn fan"
-        :class="{
+           class="mode-btn fan"
+           :class="{
           animated: modes.fan.running,
           'color-fan': (selectedMode || lastTappedMode) === 'fan',
           'color-off': (selectedMode || lastTappedMode) !== 'fan'
         }"
-        @click="openPowerModal('fan')">
-        <icon-fan size="82%" />
+           @click="openPowerModal('fan')">
+        <icon-fan size="82%"/>
       </div>
       <div v-if="showHumidity"
-        class="mode-btn humidity"
-        :class="{
+           class="mode-btn humidity"
+           :class="{
           animated: modes.humidity.running,
           'color-humidity': (selectedMode || lastTappedMode) === 'humidity',
           'color-off': (selectedMode || lastTappedMode) !== 'humidity'
         }"
-        @click="openPowerModal('humidity')">
-        <icon-humidity size="82%" />
+           @click="openPowerModal('humidity')">
+        <icon-humidity size="82%"/>
       </div>
       <div v-if="showHotWater"
-        class="mode-btn hotwater"
-        :class="{
+           class="mode-btn hotwater"
+           :class="{
           animated: modes.hotwater.running,
           'color-hotwater': (selectedMode || lastTappedMode) === 'hotwater',
           'color-off': (selectedMode || lastTappedMode) !== 'hotwater'
         }"
-        @click="openPowerModal('hotwater')">
-        <icon-hotwater size="70%" />
+           @click="openPowerModal('hotwater')">
+        <icon-hotwater size="70%"/>
+      </div>
+      <div class="mode-btn">&nbsp;</div>
+      <div class="mode-btn datetimedisplay unselectable" style="color: #999999">
+        <DateTimeDisplay/>
       </div>
       <div class="mode-btn info color-off" @click="toggleInfoScreen">
-        <icon-info size="75%" />
+        <icon-info size="75%"/>
       </div>
     </div>
     <div class="grid">
       <!-- row -->
-      <div class="active-temp unselectable" v-html="targetTemperature">
+      <div :class="tempClass"
+           @click="toggleTempClass"
+           v-html="targetTemperature">
       </div>
       <div class="grid-home-icon unselectable">
-        <icon-home size="100%" />
+        <icon-home size="100%"/>
       </div>
       <div class="current-temp unselectable">
         {{ currentTemperature }}<span class="symbol">°</span>
@@ -78,7 +85,7 @@
         <div class="increment" @click="increment">+</div>
       </div>
       <div class="grid-humidity-icon">
-        <icon-humidity size="100%" />
+        <icon-humidity size="100%"/>
       </div>
       <div class="current-humidity unselectable">
         {{ currentHumidity }}<span class="symbol">%</span>
@@ -105,18 +112,19 @@ import iconFan from './icon-fan.vue'
 import iconHumidity from './icon-humidity.vue'
 import iconHotwater from './icon-hotwater.vue'
 import iconInfo from './icon-info.vue'
+import DateTimeDisplay from "./datetime.vue";
 
 export default {
   data() {
     return {
       // Called by the power settings modal when you tap on a mode
-      powerModalCallback: () => {},
-      // Give the power settings modal context of what options to show
-      lastTappedMode: '',
-      showPowerModal: false
+      powerModalCallback: () => {
+      }, // Give the power settings modal context of what options to show
+      lastTappedMode: '', showPowerModal: false, sleeping: true, tempClass: 'sleep-temp',
+      secondsAwake: 0
     }
-  },
-  components: {
+  }, components: {
+    DateTimeDisplay,
     iconCool,
     iconFan,
     iconHeat,
@@ -126,32 +134,19 @@ export default {
     iconHotwater,
     iconInfo,
     powerSettingsModal
-  },
-  computed: {
+  }, computed  : {
     // Some variables in $store.state we want to read
     // https://vuex.vuejs.org/guide/state.html#the-mapstate-helper
-    ...mapState([
-      'comfortMode',
-      'currentTemperature',
-      'currentHumidity',
-      'icons',
-      'hysteresis',
-      'modes',
-      'selectedMode',
-      'showControls',
-      'showCooling',
-      'showFan',
-      'showHeating',
-      'showHotWater',
-      'showHumidity'
-    ]),
-    powerSettingText() {
+    ...mapState(
+      ['comfortMode', 'currentTemperature', 'currentHumidity', 'icons', 'hysteresis', 'modes',
+        'selectedMode', 'showControls', 'showCooling', 'showFan', 'showHeating', 'showHotWater',
+        'showHumidity']), powerSettingText() {
       const modes = {
-        cool: () => 'Cooling',
-        heat: () => this.modes.heat2.running ? '2nd-stage heating' : 'Heating',
+        cool    : () => 'Cooling',
+        heat    : () => this.modes.heat2.running ? '2nd-stage heating' : 'Heating',
         hotwater: () => 'Hot water',
         humidity: () => 'Humidity control',
-        fan: () => 'Fan'
+        fan     : () => 'Fan'
       }
       if (this.selectedMode && modes[this.selectedMode]) {
         const modeState = this.modes[this.selectedMode]
@@ -171,12 +166,10 @@ export default {
         return `${modeText} off`
       }
       return ''
-    },
-    targetTemperature() {
+    }, targetTemperature() {
       return this.$store.getters.targetTemperature
     }
-  },
-  methods: {
+  }, methods   : {
     openPowerModal(mode) {
       // First tap, only select
       if (this.selectedMode !== mode) {
@@ -192,16 +185,32 @@ export default {
         this.showPowerModal = false
       }
       this.showPowerModal = true
-    },
-    decrement() {
+    }, decrement() {
+      this.secondsAwake = 0
       this.$store.commit('decrementTargetValue')
-    },
-    increment() {
+    }, increment() {
+      this.secondsAwake = 0
       this.$store.commit('incrementTargetValue')
-    },
-    toggleInfoScreen() {
+    }, toggleInfoScreen() {
       this.$store.commit('toggleInfoScreen')
+    }, toggleSleep() {
+      this.sleepTimer = setInterval(() => {
+        if (!this.sleeping && this.secondsAwake > 9) {
+          this.secondsAwake = 0
+          this.sleeping = true
+          this.tempClass = 'sleep-temp'
+        } else if (!this.sleeping) {
+          this.secondsAwake += 1
+        }
+      }, 1000)
+    }, toggleTempClass() {
+      if (this.sleeping) {
+        this.sleeping = false
+        this.tempClass = 'active-temp unselectable'
+      }
     }
+  }, mounted() {
+    this.toggleSleep()
   }
 }
 </script>
@@ -228,6 +237,19 @@ export default {
   line-height: 100%;
   top: 29%;
   width: 50vw;
+}
+
+.sleep-temp {
+  padding-left: 210px;
+  font-size: 40vh;
+  left: 2%;
+  line-height: 80%;
+  top: 29%;
+  width: 40vw;
+  height: 310px;
+  z-index: 1;
+  padding-top: 100px;
+  background: black;
 }
 
 .active-temp > .symbol {
@@ -319,6 +341,11 @@ export default {
 
 .mode-btn.heat {
   margin-top: 4.4vh;
+}
+
+.mode-btn.datetimedisplay {
+  margin-top: 5vh;
+  width: 40vh;
 }
 
 .mode-btn.humidity {

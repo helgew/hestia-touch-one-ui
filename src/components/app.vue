@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="colorClass">
+  <div id="app" class="color-off">
     <info-screen v-if="showInfoScreen" />
     <home-screen v-if="!showInfoScreen" />
   </div>
@@ -61,7 +61,7 @@ html {
 }
 
 .color-heat {
-  color: #fda64e;
+  color: #fd684e;
 }
 
 .color-humidity {

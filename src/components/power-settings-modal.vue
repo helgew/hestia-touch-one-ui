@@ -1,7 +1,7 @@
 <!-- This component is the dialog box you see when you tap on a mode -->
 
 <template>
-  <div class="power-settings-modal-container" :class="[colorClass]">
+  <div class="power-settings-modal-container color-off">
     <table>
       <tr v-for="option in options" :key="option.key">
         <td class="unselectable" @click="selectOption(option.key)">{{ option.label }}</td>
@@ -23,9 +23,6 @@ export default {
     }
   },
   computed: {
-    colorClass() {
-      return `color-${this.mode}`
-    },
     options() {
       if (this.mode === 'heat' || this.mode === 'cool') {
         return [
@@ -88,7 +85,7 @@ export default {
   position: absolute;
   top: 10%;
   width: 80%;
-  z-index: 1;
+  z-index: 2;
 }
 
 table {

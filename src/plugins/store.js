@@ -78,11 +78,11 @@ export default new Vuex.Store({
       systemtype: '--',
       season: '--'
     },
-    selectedMode: '',
+    selectedMode: 'heat',
     showInfoScreen: false,
     showControls: true,
     showCooling: false,
-    showHeating: false,
+    showHeating: true,
     showFan: false,
     showHumidity: false,
     showHotWater: false
@@ -225,7 +225,7 @@ function mqttClientPlugin(store) {
         store.state.showFan = true
         store.state.showHeating = true
         store.state.showCooling = true
-      } else {
+      } else if (store.state.info.systemtype === 'EU') {
         // Typical EU modes
         store.state.showFan = false
         store.state.showCooling = false
@@ -233,6 +233,14 @@ function mqttClientPlugin(store) {
         store.state.showHeating = true
         store.state.showHumidity = true
         store.state.showHotWater = true
+      } else {
+        // Custom mode
+        store.state.showFan = false
+        store.state.showCooling = false
+
+        store.state.showHeating = true
+        store.state.showHumidity = false
+        store.state.showHotWater = false
       }
     },
     'hestia/local/season': message => {
