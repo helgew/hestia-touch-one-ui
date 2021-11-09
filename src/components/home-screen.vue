@@ -1,5 +1,6 @@
 <template>
   <div id="home-screen">
+    <div v-if="screensaver" class="dim" @click="screensaver = false" />
     <power-settings-modal
       :mode="lastTappedMode"
       :on-option-select="powerModalCallback"
@@ -121,7 +122,7 @@ export default {
       powerModalCallback: () => {
       }, // Give the power settings modal context of what options to show
       lastTappedMode: '', showPowerModal: false, sleeping: true, tempClass: 'sleep-temp',
-      secondsAwake: 0
+      secondsAwake: 0, screensaver: false, screenAwake: 0
     }
   }, components: {
     DateTimeDisplay,
@@ -193,7 +194,7 @@ export default {
       this.$store.commit('incrementTargetValue')
     }, toggleInfoScreen() {
       this.$store.commit('toggleInfoScreen')
-    }, toggleSleep() {
+    }, startTimers() {
       this.sleepTimer = setInterval(() => {
         if (!this.sleeping && this.secondsAwake > 9) {
           this.secondsAwake = 0
@@ -203,14 +204,23 @@ export default {
           this.secondsAwake += 1
         }
       }, 1000)
+      this.screenTimer = setInterval(() => {
+        if (!this.screensaver && this.screenAwake > 29) {
+          this.screenAwake = 0
+          this.screensaver = true
+        } else if (!this.screensaver && this.sleeping) {
+          this.screenAwake += 1
+        }
+      }, 1000)
     }, toggleTempClass() {
       if (this.sleeping) {
         this.sleeping = false
         this.tempClass = 'active-temp unselectable'
+        this.screenAwake = 0
       }
     }
   }, mounted() {
-    this.toggleSleep()
+    this.startTimers()
   }
 }
 </script>
@@ -399,5 +409,19 @@ export default {
 .value-controls > .increment {
   position: absolute;
   right: 0;
+}
+
+.dim {
+  height:100%;
+  width:100%;
+  position:fixed;
+  left:0;
+  top:0;
+  z-index:10 !important;
+  background-color:black;
+  filter: alpha(opacity=75); /* internet explorer */
+  -khtml-opacity: 0.75;      /* khtml, old safari */
+  -moz-opacity: 0.75;      /* mozilla, netscape */
+  opacity: 0.75;      /* fx, safari, opera */
 }
 </style>
