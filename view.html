@@ -1,7 +1,7 @@
 <html>
 <head>
   <style>
-    div {
+    .iframe-div {
       text-align: center;
       width: 100%;
       vertical-align: middle;
@@ -13,7 +13,17 @@
       width: 200px;
     }
 
-    div,
+    .buttons {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      width: 400px;
+      margin-left: -200px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .iframe-div,
     body,
     html {
       height: 100%;
@@ -23,12 +33,45 @@
     body {
       display: table;
     }
+
+    button {
+      width: 100px;
+      height: 60px;
+      background-color: grey;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .glow {
+      background-color: red;
+    }
   </style>
   <title>Thermostat</title>
 </head>
 <body>
-<div class="iframe">
-  <iframe width="480" height="320" src="http://localhost:8080"></iframe>
+<div class="iframe iframe-div">
+  <iframe id="iframe" width="480" height="320" src="http://localhost:8080"></iframe>
 </div>
+<div class="buttons">
+  <input id="orig-button" type="button" value="Original"
+         onclick="addGlow(this.id); document.getElementById('iframe').src =
+         'file:///Users/helgew/dev/projects/hestia-touch-one-ui-orig/index.html'"/>
+  <input id="dist-button" type="button" value="Distribution"
+         onclick="addGlow(this.id); document.getElementById('iframe').src =
+         'file:///Users/helgew/dev/projects/hestia-touch-one-ui/dist/index.html'"/>
+  <input class="glow" id="dev-button" type="button" value="Development"
+         onclick="addGlow(this.id); document.getElementById('iframe').src =
+         'http://localhost:8080'"/>
+</div>
+<script type="text/javascript">
+  function addGlow(buttonId) {
+    var buttons = document.querySelectorAll("input[type=button]");
+    for (var i = 0, len = buttons.length; i < len; i++) {
+      buttons[i].classList.remove("glow");
+    }
+    document.getElementById(buttonId).classList.add("glow");
+    return true;
+  }
+</script>
 </body>
 </html>
