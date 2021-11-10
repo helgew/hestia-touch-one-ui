@@ -17,9 +17,9 @@
     "just-debounce": "^1.0.0",
     "mqtt": "^3.0.0",
     "register-service-worker": "^1.7.1",
+    "strftime": "^0.10.0",
     "typeface-roboto": "^0.0.75",
     "vue": "^2.6.11",
-    "vue-luxon": "^0.10.0",
     "vuex": "^3.4.0"
   },
   "devDependencies": {

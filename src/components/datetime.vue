@@ -7,8 +7,6 @@
 
 <script>
 
-const { DateTime } = require("luxon")
-
 export default {
   name      : 'DateTimeDisplay', props: {
     color: {
@@ -20,10 +18,10 @@ export default {
     }
   }, methods: {
     setTime() {
+      var strftime = require('strftime')
       setInterval(() => {
-        const now = DateTime.now()
-        this.time = now.toLocaleString(DateTime.TIME_24_WITH_SECONDS)
-        this.date = now.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
+        this.time = strftime("%H:%M:%S")
+        this.date = strftime("%a, %b %e, %Y")
       }, 1000)
     }
   }, mounted() {
