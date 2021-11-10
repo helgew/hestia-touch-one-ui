@@ -11,7 +11,8 @@
            @click="toggleHeat">
         <icon-heat size="76%"/>
       </div>
-      <div class="mode-btn boost color-off"
+      <div v-if="modes.heat.active"
+           class="mode-btn boost color-off"
            :class="{ animated: modes.heat.boostEnabled }"
            @click="toggleBoost"
       >
@@ -27,7 +28,7 @@
     <div class="grid">
       <!-- row -->
       <div :class="tempClass"
-           @click="toggleTempClass"
+           @click="toggleControls"
            v-html="targetTemperature">
       </div>
       <div class="grid-home-icon unselectable">
@@ -71,11 +72,11 @@ import IconSettings from "@/components/icon-settings";
 export default {
   data() {
     return {
-      sleeping          : true,
-      tempClass         : 'sleep-temp',
-      secondsAwake      : 0,
-      screensaver       : false,
-      screenAwake       : 0
+      showTempControls   : false,
+      tempClass          : 'hide-controls',
+      secsControlsShowing: 0,
+      screensaver        : false,
+      screenAwake        : 0
     }
   }, components: {
     IconSettings,
@@ -113,41 +114,35 @@ export default {
       return this.$store.getters.targetTemperature
     }
   }, methods   : {
-    openPowerModal(mode) {
-      // Second tap, open the modal
-      this.powerModalCallback = powerOption => {
-        this.$store.commit('selectPowerSetting', { mode, powerOption })
-      }
-    }, decrement() {
-      this.secondsAwake = 0
+    decrement() {
       this.$store.commit('decrementTargetValue')
     }, increment() {
-      this.secondsAwake = 0
       this.$store.commit('incrementTargetValue')
     }, toggleSettingsScreen() {
       this.$store.commit('toggleSettingsScreen')
     }, startTimers() {
       this.sleepTimer = setInterval(() => {
-        if (!this.sleeping && this.secondsAwake > 9) {
-          this.secondsAwake = 0
-          this.sleeping = true
-          this.tempClass = 'sleep-temp'
-        } else if (!this.sleeping) {
-          this.secondsAwake += 1
+        if (this.showTempControls && this.secsControlsShowing > 9) {
+          this.screenAwake = 0
+          this.showTempControls = false
+          this.tempClass = 'hide-controls'
+        } else if (this.showTempControls) {
+          this.secsControlsShowing += 1
         }
       }, 1000)
       this.screenTimer = setInterval(() => {
         if (!this.screensaver && this.screenAwake > 29) {
           this.screenAwake = 0
           this.screensaver = true
-        } else if (!this.screensaver && this.sleeping) {
+        } else if (!this.screensaver && !this.showTempControls) {
           this.screenAwake += 1
         }
       }, 1000)
-    }, toggleTempClass() {
-      if (this.sleeping) {
-        this.sleeping = false
-        this.tempClass = 'active-temp unselectable'
+    }, toggleControls() {
+      if (!this.showTempControls) {
+        this.showTempControls = true
+        this.tempClass = 'show-controls unselectable'
+        this.secsControlsShowing = 0
         this.screenAwake = 0
       }
     }, toggleHeat() {
@@ -156,11 +151,14 @@ export default {
         this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state } )
       }
     }, toggleBoost() {
-      var state = this.modes.heat.boostEnabled ? (this.modes.heat.active ? "ON" : "OFF") : "Boost"
+      var state = this.modes.heat.boostEnabled ? "ON" : "Boost"
       this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state })
+    }, resetScreenAwake() {
+      this.screenAwake = 0
     }
   }, mounted() {
     this.startTimers()
+    document.addEventListener("mouseup", this.resetScreenAwake())
   }
 }
 </script>
@@ -181,7 +179,7 @@ export default {
   animation: changecolor 2s steps(8) infinite alternate;
 }
 
-.active-temp {
+.show-controls {
   font-size: 30vh;
   left: 2%;
   line-height: 100%;
@@ -189,7 +187,7 @@ export default {
   width: 50vw;
 }
 
-.sleep-temp {
+.hide-controls {
   padding-left: 30vh;
   font-size: 40vh;
   left: 2%;
@@ -202,7 +200,7 @@ export default {
   background: black;
 }
 
-.active-temp > .symbol {
+.show-controls > .symbol {
   font-size: 18vh;
   vertical-align: text-top;
 }
