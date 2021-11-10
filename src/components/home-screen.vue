@@ -1,29 +1,27 @@
 <template>
   <div id="home-screen">
     <div v-if="screensaver" class="dim" @click="screensaver = false"/>
-    <power-settings-modal
-      :mode="lastTappedMode"
-      :on-option-select="powerModalCallback"
-      v-if="showPowerModal"
-    />
     <div class="top-container">
-      <div v-if="showHeating"
-           class="mode-btn heat"
+      <div class="mode-btn heat"
            :class="{
           animated: modes.heat.running,
-          'color-heat': (selectedMode || lastTappedMode) === 'heat'
-                            && (modes.heat.active || modes.heat.boostEnabled),
-          'color-off': (selectedMode || lastTappedMode) !== 'heat'
+          'color-heat': modes.heat.active || modes.heat.running,
+          'color-off': !(modes.heat.active || modes.heat.running)
         }"
-           @click="openPowerModal('heat')">
-        <!-- Switch out icon for 2nd-stage heating -->
+           @click="toggleHeat">
         <icon-heat size="76%"/>
+      </div>
+      <div class="mode-btn boost color-off"
+           :class="{ animated: modes.heat.boostEnabled }"
+           @click="toggleBoost"
+      >
+        <icon-boost size="65%"/>
       </div>
       <div class="datetimedisplay unselectable">
         <DateTimeDisplay/>
       </div>
-      <div class="mode-btn info color-off" @click="toggleInfoScreen">
-        <icon-info size="75%"/>
+      <div class="mode-btn settings color-off" @click="toggleSettingsScreen">
+        <icon-settings size="45%"/>
       </div>
     </div>
     <div class="grid">
@@ -62,21 +60,17 @@
 
 <script>
 import { mapState } from 'vuex'
-import powerSettingsModal from './power-settings-modal.vue'
 import iconHeat from './icon-heat.vue'
+import iconBoost from './icon-boost.vue'
 import iconHome from './icon-home.vue'
 import iconHumidity from './icon-humidity.vue'
-import iconInfo from './icon-info.vue'
+import iconSettings from './icon-settings.vue'
 import DateTimeDisplay from "./datetime.vue";
+import IconSettings from "@/components/icon-settings";
 
 export default {
   data() {
     return {
-      // Called by the power settings modal when you tap on a mode
-      powerModalCallback: () => {
-      }, // Give the power settings modal context of what options to show
-      lastTappedMode    : '',
-      showPowerModal    : false,
       sleeping          : true,
       tempClass         : 'sleep-temp',
       secondsAwake      : 0,
@@ -84,13 +78,20 @@ export default {
       screenAwake       : 0
     }
   }, components: {
-    DateTimeDisplay, iconHeat, iconHome, iconHumidity, iconInfo, powerSettingsModal
+    IconSettings,
+    DateTimeDisplay,
+    iconHeat,
+    iconBoost,
+    iconHome,
+    iconHumidity,
+    iconSettings
   }, computed  : {
     // Some variables in $store.state we want to read
     // https://vuex.vuejs.org/guide/state.html#the-mapstate-helper
     ...mapState(
       ['comfortMode', 'currentTemperature', 'currentHumidity', 'icons', 'hysteresis', 'modes',
-        'selectedMode', 'showControls', 'showHeating']), powerSettingText() {
+        'selectedMode', 'showControls', 'showHeating']),
+    powerSettingText() {
       const modes = {
         heat: () => 'Heating',
       }
@@ -113,28 +114,18 @@ export default {
     }
   }, methods   : {
     openPowerModal(mode) {
-      // First tap, only select
-      if (this.selectedMode !== mode) {
-        this.$store.commit('selectMode', mode)
-        return
-      }
-
       // Second tap, open the modal
-      this.lastTappedMode = mode
       this.powerModalCallback = powerOption => {
         this.$store.commit('selectPowerSetting', { mode, powerOption })
-        this.lastTappedMode = ''
-        this.showPowerModal = false
       }
-      this.showPowerModal = true
     }, decrement() {
       this.secondsAwake = 0
       this.$store.commit('decrementTargetValue')
     }, increment() {
       this.secondsAwake = 0
       this.$store.commit('incrementTargetValue')
-    }, toggleInfoScreen() {
-      this.$store.commit('toggleInfoScreen')
+    }, toggleSettingsScreen() {
+      this.$store.commit('toggleSettingsScreen')
     }, startTimers() {
       this.sleepTimer = setInterval(() => {
         if (!this.sleeping && this.secondsAwake > 9) {
@@ -159,6 +150,14 @@ export default {
         this.tempClass = 'active-temp unselectable'
         this.screenAwake = 0
       }
+    }, toggleHeat() {
+      if (!this.modes.heat.boostEnabled) {
+        var state = this.modes.heat.active ? "OFF" : "ON"
+        this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state } )
+      }
+    }, toggleBoost() {
+      var state = this.modes.heat.boostEnabled ? (this.modes.heat.active ? "ON" : "OFF") : "Boost"
+      this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state })
     }
   }, mounted() {
     this.startTimers()
@@ -286,10 +285,6 @@ export default {
   width: 26vh;
 }
 
-.mode-btn.cool {
-  margin-top: 3vh;
-}
-
 .mode-btn.heat {
   margin-top: 4.4vh;
 }
@@ -300,23 +295,20 @@ export default {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 100px;
+  width: 200px;
   height: 50px;
   margin-top: -20px;
-  margin-left: -50px;
+  margin-left: -100px;
 }
 
-.mode-btn.humidity {
-  margin-top: 2.8vh;
-}
-
-.mode-btn.hotwater {
-  margin-top: 4.4vh;
-}
-
-.mode-btn.info {
+.mode-btn.settings {
   position: absolute;
+  top: 2vh;
   right: 0.5%;
+}
+
+.mode-btn.boost {
+  margin-top: 6vh;
 }
 
 .top-container {

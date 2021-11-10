@@ -101,6 +101,7 @@ export default {
   position: absolute;
   text-align: left;
   top: 10vh;
+  left: 5vh;
   width: 85%;
 }
 

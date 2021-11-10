@@ -1,19 +1,19 @@
 <template>
   <div id="app" class="color-off">
-    <info-screen v-if="showInfoScreen" />
-    <home-screen v-if="!showInfoScreen" />
+    <settings-screen v-if="showSettingsScreen" />
+    <home-screen v-if="!showSettingsScreen" />
   </div>
 </template>
 
 <script>
 import 'typeface-roboto'
 import homeScreen from './home-screen.vue'
-import infoScreen from './info-screen.vue'
+import settingsScreen from './settings-screen.vue'
 
 export default {
   components: {
     homeScreen,
-    infoScreen
+    settingsScreen
   },
   computed: {
     colorClass() {
@@ -27,8 +27,8 @@ export default {
         'color-off': true
       }
     },
-    showInfoScreen() {
-      return this.$store.state.showInfoScreen
+    showSettingsScreen() {
+      return this.$store.state.showSettingsScreen
     }
   }
 }

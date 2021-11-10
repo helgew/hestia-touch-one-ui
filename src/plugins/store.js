@@ -48,6 +48,7 @@ export default new Vuex.Store({
     },
     selectedMode: 'heat',
     showInfoScreen: false,
+    showSettingsScreen: false,
     showControls: true,
     showHeating: true
   },
@@ -59,7 +60,8 @@ export default new Vuex.Store({
     incrementTargetValue,
     selectMode,
     selectPowerSetting,
-    toggleInfoScreen
+    toggleInfoScreen,
+    toggleSettingsScreen
   }
 })
 
@@ -290,7 +292,7 @@ function selectPowerSetting(state, { mode, powerOption }) {
 
   // We don't set a local state for this. Merely report to openhab
   // what we want and it will return all the power states for us.
-  console.debug(`[sending] ${topics[mode]}: ${powerOption}`)
+  console.log(`[sending] ${topics[mode]}: ${powerOption}`)
   client.publish(topics[mode], powerOption)
 
   // Ok I lied, let's eagerly update even though we're going to get an openhab response
@@ -299,6 +301,10 @@ function selectPowerSetting(state, { mode, powerOption }) {
 
 function toggleInfoScreen(state) {
   state.showInfoScreen = !state.showInfoScreen
+}
+
+function toggleSettingsScreen(state) {
+  state.showSettingsScreen = !state.showSettingsScreen
 }
 
 function updateMode(state, mode) {
