@@ -7,6 +7,8 @@
 
 <script>
 
+import strftime from "strftime";
+
 export default {
   name      : 'DateTimeDisplay', props: {
     color: {
@@ -17,15 +19,17 @@ export default {
       date: "", time: ""
     }
   }, methods: {
-    setTime() {
-      var strftime = require('strftime')
+    startClock() {
       setInterval(() => {
-        this.time = strftime("%H:%M:%S")
-        this.date = strftime("%a, %b %e, %Y")
+        this.setTime()
       }, 1000)
+    }, setTime() {
+      this.time = strftime("%H:%M:%S")
+      this.date = strftime("%a, %b %e, %Y")
     }
   }, mounted() {
     this.setTime()
+    this.startClock()
   }
 }
 
