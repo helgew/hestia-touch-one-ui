@@ -162,7 +162,6 @@ export default {
         this.showTempControls = true
         this.tempClass = 'show-controls unselectable'
         this.secsControlsShowing = 0
-        this.screenAwake = 0
       }
     }, toggleHeat() {
       if (!this.modes.heat.boostEnabled) {
@@ -174,6 +173,7 @@ export default {
       this.$store.commit('selectPowerSetting', {mode: 'heat', powerOption: state})
     }, resetScreenAwake() {
       this.screenAwake = 0
+      this.secsControlsShowing = 0
     }
   }, mounted() {
     this.startTimers()
