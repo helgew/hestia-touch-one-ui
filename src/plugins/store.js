@@ -16,6 +16,7 @@ export default new Vuex.Store({
     currentHumidity: 0,
     currentPressure: '--',
     currentTemperature: 0,
+    outdoorsTemperature: 0,
     hysteresis: 0,
     modes: {
       // Some terminology clarification on mode states:
@@ -101,6 +102,13 @@ function mqttClientPlugin(store) {
         store.state.currentTemperature = parseInt(message)
       }
     },
+    'hestia/local/outdoorstemp': message => {
+      if (store.state.info.tempunit === 'C') {
+        store.state.outdoorsTemperature = message
+      } else {
+        store.state.outdoorsTemperature = parseInt(message)
+      }
+    },
     'hestia/local/mintempsetpoint': message => {
       store.state.modes.heat.setValue = parseFloat(message)
     },
@@ -168,9 +176,10 @@ function mqttClientPlugin(store) {
         'hestia/local/mintempsetpoint',
         // Sensor metrics
         'hestia/local/temperature',
+        'hestia/local/outdoorstemp',
         'hestia/local/humidity',
         'hestia/local/humisetpoint',
-        //'hestia/local/pressure', // Currently unused
+        'hestia/local/pressure',
         // System settings
         'hestia/local/wanip',
         'hestia/local/wlanip',

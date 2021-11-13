@@ -1,119 +1,138 @@
 <template>
-  <div id="home-screen">
+  <div id="home-screen" class="home-screen" @click="resetScreenAwake">
     <div v-if="screensaver" class="dim" @click="screensaver = false"/>
-    <div class="top-container">
-      <div class="mode-btn heat"
-           :class="{
+      <div class="top-container">
+        <div class="left-column-top">
+          <div class="mode-btn heat"
+               :class="{
           animated: modes.heat.running,
           'color-heat': modes.heat.active || modes.heat.running,
           'color-off': !(modes.heat.active || modes.heat.running)
         }"
-           @click="toggleHeat">
-        <icon-heat size="76%"/>
+               @click="toggleHeat">
+            <icon-heat size="68%"/>
+          </div>
+          <div v-if="modes.heat.active"
+               class="mode-btn boost color-off"
+               :class="{ animated: modes.heat.boostEnabled }"
+               @click="toggleBoost"
+          >
+            <icon-boost size="60%"/>
+          </div>
+        </div>
+        <div class="center-column-top">
+          <div class="datetimedisplay unselectable">
+            <DateTimeDisplay/>
+          </div>
+        </div>
+        <div class="right-colum-top">
+          <div class="mode-btn settings color-off" @click="toggleSettingsScreen">
+            <icon-settings size="50%"/>
+          </div>
+        </div>
       </div>
-      <div v-if="modes.heat.active"
-           class="mode-btn boost color-off"
-           :class="{ animated: modes.heat.boostEnabled }"
-           @click="toggleBoost"
-      >
-        <icon-boost size="65%"/>
+      <div class="center-container">
+        <div class="left-column-center">
+          <div :class="tempClass"
+               @click="toggleControls"
+               v-html="targetTemperature">
+          </div>
+          <div v-if="showTempControls" class="temp-controls unselectable">
+            <div @click="decrement">-</div>
+            <div @click="increment">+</div>
+          </div>
+        </div>
+        <div class="right-column-center">
+          <div class="flex-row">
+            <div class="current-temp current-weather unselectable">
+              {{ currentTemperature }}<span class="symbol">°</span>
+            </div>
+            <div class="home-icon unselectable">
+              <icon-home size="25"/>
+            </div>
+          </div>
+          <div class="flex-row">
+            <div class="outdoors-temp current-weather unselectable">
+              {{ outdoorsTemperature }}<span class="symbol">°</span>
+            </div>
+            <div class="outdoors-icon unselectable">
+              <icon-outdoors size="25"/>
+            </div>
+          </div>
+          <div class="flex-row">
+            <div class="current-humidity current-weather unselectable">
+              {{ currentHumidity }}<span class="symbol">%</span>
+            </div>
+            <div class="humidity-icon">
+              <icon-humidity size="20"/>
+            </div>
+          </div>
+          <div class="flex-row">
+            <div class="current-pressure current-weather unselectable">
+              {{ currentPressure }} hPa
+            </div>
+            <div class="pressure-icon">
+              <icon-pressure size="20"/>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="datetimedisplay unselectable">
-        <DateTimeDisplay/>
+      <div class="bottom-container">
+        <div class="power-setting-text">{{ powerSettingText }}</div>
+        <div class="comfort-mode">
+          <span v-if="comfortMode">Comfort mode</span>
+          <span v-else>Comfort range: &plusmn;{{ hysteresis }}&deg;</span>
+        </div>
       </div>
-      <div class="mode-btn settings color-off" @click="toggleSettingsScreen">
-        <icon-settings size="45%"/>
-      </div>
-    </div>
-    <div class="grid">
-      <!-- row -->
-      <div :class="tempClass"
-           @click="toggleControls"
-           v-html="targetTemperature">
-      </div>
-      <div class="grid-home-icon unselectable">
-        <icon-home size="100%"/>
-      </div>
-      <div class="current-temp unselectable">
-        {{ currentTemperature }}<span class="symbol">°</span>
-      </div>
-      <!-- row -->
-      <div v-if="showControls" class="value-controls unselectable">
-        <div class="decrement" @click="decrement">-</div>
-        <div class="increment" @click="increment">+</div>
-      </div>
-      <div class="grid-humidity-icon">
-        <icon-humidity size="100%"/>
-      </div>
-      <div class="current-humidity unselectable">
-        {{ currentHumidity }}<span class="symbol">%</span>
-      </div>
-    </div>
-    <div class="bottom-container">
-      <div class="power-setting-text">{{ powerSettingText }}</div>
-      <div class="comfort-mode">
-        <span v-if="comfortMode">Comfort mode</span>
-        <span v-else>Comfort range: &plusmn;{{ hysteresis }}&deg;</span>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import iconHeat from './icon-heat.vue'
-import iconBoost from './icon-boost.vue'
-import iconHome from './icon-home.vue'
-import iconHumidity from './icon-humidity.vue'
-import iconSettings from './icon-settings.vue'
-import DateTimeDisplay from "./datetime.vue";
+import {mapState} from 'vuex'
+import iconHeat from '@/components/icon-heat.vue'
+import iconBoost from '@/components/icon-boost.vue'
+import iconHome from '@/components/icon-home.vue'
+import iconHumidity from '@/components/icon-humidity.vue'
+import iconPressure from '@/components/icon-pressure.vue'
+import iconSettings from '@/components/icon-settings.vue'
+import DateTimeDisplay from "@/components/datetime.vue";
 import IconSettings from "@/components/icon-settings";
+import IconOutdoors from "@/components/icon-outdoors";
 
 export default {
   data() {
     return {
-      showTempControls   : false,
-      tempClass          : 'hide-controls',
+      showTempControls: false,
+      tempClass: 'hide-controls',
       secsControlsShowing: 0,
-      screensaver        : false,
-      screenAwake        : 0
+      screensaver: false,
+      screenAwake: 0
     }
   }, components: {
+    IconOutdoors,
     IconSettings,
     DateTimeDisplay,
     iconHeat,
     iconBoost,
     iconHome,
     iconHumidity,
+    iconPressure,
     iconSettings
-  }, computed  : {
+  }, computed: {
     // Some variables in $store.state we want to read
     // https://vuex.vuejs.org/guide/state.html#the-mapstate-helper
     ...mapState(
-      ['comfortMode', 'currentTemperature', 'currentHumidity', 'icons', 'hysteresis', 'modes',
-        'selectedMode', 'showControls', 'showHeating']),
+      ['comfortMode', 'currentTemperature', 'currentHumidity', 'currentPressure', 'icons',
+        'hysteresis', 'modes', 'selectedMode', 'outdoorsTemperature']),
     powerSettingText() {
-      const modes = {
-        heat: () => 'Heating',
+      if (this.modes['heat'].active) {
+        return `Heating auto`
       }
-      if (this.selectedMode && modes[this.selectedMode]) {
-        const modeState = this.modes[this.selectedMode]
-        const modeText = modes[this.selectedMode]()
-        if (modeState.boostEnabled) {
-          return `${modeText} boost mode, ${modeState.boostTimeRemaining} min. remaining`
-        }
-
-        if (modeState.active) {
-          return `${modeText} auto`
-        }
-
-        return `${modeText} off`
-      }
-      return ''
+      return `Heating off`
     }, targetTemperature() {
       return this.$store.getters.targetTemperature
     }
-  }, methods   : {
+  }, methods: {
     decrement() {
       this.$store.commit('decrementTargetValue')
     }, increment() {
@@ -148,17 +167,16 @@ export default {
     }, toggleHeat() {
       if (!this.modes.heat.boostEnabled) {
         var state = this.modes.heat.active ? "OFF" : "ON"
-        this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state } )
+        this.$store.commit('selectPowerSetting', {mode: 'heat', powerOption: state})
       }
     }, toggleBoost() {
       var state = this.modes.heat.boostEnabled ? "ON" : "Boost"
-      this.$store.commit('selectPowerSetting', { mode: 'heat', powerOption: state })
+      this.$store.commit('selectPowerSetting', {mode: 'heat', powerOption: state})
     }, resetScreenAwake() {
       this.screenAwake = 0
     }
   }, mounted() {
     this.startTimers()
-    document.addEventListener("mouseup", this.resetScreenAwake())
   }
 }
 </script>
@@ -179,25 +197,90 @@ export default {
   animation: changecolor 2s steps(8) infinite alternate;
 }
 
+.home-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.home-screen > div {
+  flex: 1;
+}
+
+.top-container {
+  height: 25vh;
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  margin-top: 2%;
+}
+
+.left-column-top {
+  width: 30vw;
+  display: flex;
+}
+
+.center-column-top {
+  width: 40vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right-colum-top {
+  width: 30vw;
+  display: flex;
+  justify-content: right;
+}
+
+.mode-btn {
+  height: 100%;
+  width: 50%;
+}
+
+.datetimedisplay {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 8vh;
+}
+
+.boost, .settings {
+  margin-top: 2px;
+}
+
+.center-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 65%;
+  min-height: 65%;
+  width: 100%;
+  padding-bottom: 15px;
+}
+
+.left-column-center {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 56vw;
+}
+
+.right-column-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+}
+
 .show-controls {
-  font-size: 30vh;
-  left: 2%;
-  line-height: 100%;
-  top: 29%;
-  width: 50vw;
+  font-size: 25vh;
 }
 
 .hide-controls {
-  padding-left: 30vh;
   font-size: 40vh;
-  left: 2%;
-  line-height: 80%;
-  top: 29%;
-  width: 40vw;
-  height: 53vh;
-  z-index: 1;
-  padding-top: 10vh;
-  background: black;
 }
 
 .show-controls > .symbol {
@@ -205,148 +288,82 @@ export default {
   vertical-align: text-top;
 }
 
-.bottom-container {
-  bottom: 0;
-  height: 8vh;
-  left: 4%;
-  position: absolute;
-  text-align: left;
-  width: 100%;
-}
-
-.bottom-container > .power-setting-text {
-  display: inline;
-  position: relative;
-}
-
-.bottom-container > .comfort-mode {
-  display: inline;
-  float: right;
-  position: relative;
-  right: 6%;
-}
-
-.current-temp {
-  font-size: 24vh;
-  right: 8%;
-  text-align: right;
-  top: 30%;
-  width: 40%;
-}
-
-.current-temp > .symbol {
-  font-size: 14vh;
-  vertical-align: text-top;
-}
-
-.current-humidity {
-  bottom: 8%;
-  font-size: 24vh;
-  right: 6.5%;
-  text-align: right;
-  width: 40%;
-}
-
-.current-humidity > .symbol {
-  font-size: 10vh;
-}
-
-.grid {
-  height: 100%;
-  width: 100%;
-}
-
-.grid > div {
-  position: absolute;
-}
-
-.grid-home-icon {
-  height: 6vw;
-  width: 6vw;
-  right: 0.5%;
-  bottom: 51%;
-}
-
-.grid-humidity-icon {
-  bottom: 20%;
-  height: 5vw;
-  right: 1vw;
-  width: 5vw;
-}
-
-.mode-btn {
-  cursor: pointer;
-  display: inline-block;
-  float: left;
-  height: 100%;
-  margin-top: 4vh;
-  width: 26vh;
-}
-
-.mode-btn.heat {
-  margin-top: 4.4vh;
-}
-
-.datetimedisplay {
+.temp-controls {
   display: flex;
+  flex-direction: row;
+  align-content: center;
   justify-content: center;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 200px;
-  height: 50px;
-  margin-top: -20px;
-  margin-left: -100px;
-}
-
-.mode-btn.settings {
-  position: absolute;
-  top: 2vh;
-  right: 0.5%;
-}
-
-.mode-btn.boost {
-  margin-top: 6vh;
-}
-
-.top-container {
-  color: #e0e5e8;
-  height: 25%;
-  left: 0;
-  max-height: 25%;
-  position: absolute;
-  top: 0;
+  align-items: flex-end;
+  height: 20%;
   width: 100%;
 }
 
-.value-controls {
-  bottom: 0;
-  height: 50vh;
-  width: 50vw;
-  left: 2%;
-}
-
-.value-controls > div {
+.temp-controls > div {
   border-style: solid;
   border-width: 2px;
   border-radius: 6px;
-  bottom: 20%;
   cursor: pointer;
-  height: 24vh;
-  font-size: 20vh;
-  display: inline-block;
-  text-align: center;
-  width: 46%;
+  font-size: 15vh;
+  width: 35%;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
-.value-controls > .decrement {
-  position: absolute;
-  left: 0;
+.bottom-container {
+  display: flex;
+  flex-direction: row;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
-.value-controls > .increment {
-  position: absolute;
-  right: 0;
+.power-setting-text {
+  width: 50%;
+  text-align: left;
+}
+
+.comfort-mode {
+  width: 50%;
+  text-align: right;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  height: 10vh;
+  margin-right: 5px;
+}
+
+.current-weather {
+  font-size: 6vh;
+  text-align: right;
+  margin-right: 10px;
+  flex: 1;
+}
+
+.current-temp > .symbol {
+  margin-right: -4px;
+}
+
+.outdoors-temp > .symbol {
+  margin-right: -4px;
+}
+
+.current-humidity > .symbol {
+}
+
+.current-pressure > .symbol {
+}
+
+.home-icon {
+}
+
+.humidity-icon {
+  justify-content: center;
+  margin-right: 3px;
+}
+
+.pressure-icon {
+  margin-right: 3px;
 }
 
 .dim {

@@ -37,14 +37,15 @@ export default {
 
 <style>
 .time {
-  font-size: 8vh;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .date {
-  font-size: 4vh;
+  font-size: 50%;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 </style>
